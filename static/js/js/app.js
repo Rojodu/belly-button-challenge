@@ -1,30 +1,56 @@
-let path = "../data/samples.json";
+let path = "static/js/data/samples.json";
 
-let data = d3.json(path);
+let i = 0;
 
-let trace = {
-    x: data.sample_values,
-    y: data.otu_ids,
-    text: data.otu_labels,
-    type: "bar",
-    orientation: "h"
+function optionChanged(name) {
+    d3.json(path).then(function(data){
+        i = data.names.indexOf(name);
+    });
+populateVisualizations();
 };
 
-let traceData = [trace];
+function populateVisualizations() {
+    d3.json(path).then(function(data) {
 
-Plotly.newPlot("bar", traceData);
+        let trace = {
+            x: data.samples[i].sample_values,
+            y: data.samples[i].otu_ids,
+            text: data.samples[i].otu_labels,
+            type: "bar",
+            orientation: "h"
+        };
+        
+        let traceData = [trace];
+        
+        Plotly.newPlot("bar", traceData);
+        
+        let trace_2 = {
+            x: data.samples[i].otu_ids,
+            y: data.samples[i].sample_values,
+            mode: 'markers',
+            text: data.samples[i].otu_labels,
+            marker: {
+                size: data.samples[i].sample_values,
+                color: data.samples[i].otu_ids
+            }
+        };
+        
+        let traceData_2 = [trace_2];
+        
+        Plotly.newPlot("bubble", traceData_2);
 
-let trace_2 = {
-    x: data.otu_ids,
-    y: data.sample_values,
-    mode: 'markers',
-    text: data.otu_labels,
-    marker: {
-        size: data.sample_values,
-        color: data.otu_ids
-    }
+        d3.select("#sample-metadata").selectAll("dt").remove();
+        d3.select("#sample-metadata")
+                .append("dt").text("id:"+data.metadata[i].id)
+                .append("dt").text("ethnicity:"+data.metadata[i].ethnicity)
+                .append("dt").text("gender:"+data.metadata[i].gender)
+                .append("dt").text("age:"+data.metadata[i].age)
+                .append("dt").text("location:"+data.metadata[i].location)
+                .append("dt").text("bbtype:"+data.metadata[i].bbtype)
+                .append("dt").text("wfreq:"+data.metadata[i].wfreq);
+    
+        d3.select("#selDataset").selectAll("option").data(data.names).enter().append("option").text(function(d) {return d;}).attr("value",function(d) {return d});
+    });
 };
 
-let traceData_2 = [trace_2];
-
-Plotly.newPlot("bubble", traceData_2);
+populateVisualizations();
